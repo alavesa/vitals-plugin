@@ -1,0 +1,18 @@
+name: Vitals
+version: '${project.version}'
+main: fi.alavesa.vitals.VitalsPlugin
+api-version: '1.21'
+softdepend: [RPEngine, Firearms, Labra]
+author: alavesa
+description: SCP Containment Breach style stamina + injuries - isolated stamina bar, gunshot/fall/burn/corrosion/bleeding wounds, health-based walk speed, medical items.
+commands:
+  vitals:
+    description: Stamina and injury commands
+    usage: /vitals help
+permissions:
+  vitals.admin:
+    description: Give medical items, heal, injure, reload
+    default: op
+  vitals.immune:
+    description: Never takes injuries, never runs out of stamina
+    default: false

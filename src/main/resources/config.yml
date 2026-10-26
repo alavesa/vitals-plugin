@@ -1,0 +1,126 @@
+# Vitals - SCP: Containment Breach style stamina + injuries.
+# Everything here is live-reloadable with /vitals reload.
+
+hud:
+  enabled: true
+  # Both bars are BOSS BARS: each one is its own isolated row at the top of the screen. They never share a
+  # line with the action bar, titles or scoreboards, and other plugins' boss bars simply stack above/below.
+  stamina:
+    enabled: true
+    overlay: PROGRESS        # PROGRESS | NOTCHED_6 | NOTCHED_10 | NOTCHED_12 | NOTCHED_20
+    show-percent: true
+    label: "Stamina"
+    icon: ":vitals:stamina:" # RP Engine icon shortcode (fonts/icons.yml in content/vitals); blank = none
+  injuries:
+    enabled: true            # a second bar that only appears while you are hurt / being treated
+    label: "Condition"
+    icon: ":vitals:injury:"
+
+stamina:
+  enabled: true
+  max: 100
+  sprint-seconds: 8          # a full bar lasts this long of sprinting
+  regen-seconds: 6           # empty -> full in this long of not sprinting
+  recover-at: 30             # after running dry, sprint unlocks again at this value
+  winded-slowness-ticks: 40  # Slowness II while winded (0 = none)
+  injury-drain-per-point: 0.25   # each injury point makes the bar drain 25% faster (SCP:CB: injuries sap stamina)
+  bleeding-drain-bonus: 0.5      # bleeding adds +50% drain
+  low-health-drain: 1.0          # at 0% health the drain is (1 + this) x; scales with health lost
+
+speed:
+  # Walk speed shrinks with LOST HEALTH (the request) and with injury points (SCP:CB), multiplied together.
+  lost-health:
+    max-penalty: 0.5         # at 0 hp you would walk at 50% (reached progressively, see curve)
+    curve: 1.4               # 1 = linear, >1 = gentle at first, steep when nearly dead
+  injury:
+    per-point: 0.08          # each injury point: -8% speed ...
+    cap: 5                   # ... up to 5 points (= -40%)
+  fracture-factor: 0.6       # a broken leg on top of everything else
+  limp-factor: 0.8           # shot in the legs (temporary)
+  min-factor: 0.25           # never slower than this
+  fracture-jump-factor: 0.3  # broken leg: jump strength multiplier
+
+sprint:
+  min-health: 0.3            # below 30% health you cannot sprint
+  blocked-by-fracture: true
+
+regen:
+  vanilla-when-healthy: true # vanilla food regen allowed when you have NO open wounds
+  vanilla-when-wounded: false
+  hp-per-second: 0           # Vitals' own trickle regen when healthy (0 = off)
+
+bleeding:
+  clot-below: 1.0            # wounds under this many injury points clot by themselves ...
+  clot-rate: 0.03            # ... losing this much hp/s bleed per second
+  particles: true
+  hurt-sound-every-seconds: 4
+  death-message: "%player% bled out"
+
+injuries:
+  gunshot:
+    damage-per-point: 4.0    # a 5-damage pistol round = 1.25 injury points
+    bleed-per-point: 0.25    # hp/s per injury point (1.25 pts -> 0.31 hp/s -> ~1 minute to bleed out untreated)
+    legs-limp-seconds: 20    # shot in the legs: no sprint + limp for this long
+    head-nausea-seconds: 5
+    # by the round the gun fires (Firearms mags.yml ammo ids). Missing = 1.0
+    caliber:
+      round_9mm: 0.8
+      round_556: 1.1
+      round_762: 1.4
+      shell_12ga: 1.6
+  fall:
+    fracture-min-damage: 6.0 # fall damage (hp) at or above this breaks a leg (vanilla: 6 hp = 9 block fall)
+    bruise-min-damage: 1.0   # smaller falls bruise (temporary slow)
+    bruise-points-per-damage: 0.15
+    bruise-heal-per-second: 0.05
+    fracture-points: 2.0
+  burn:
+    points-per-damage: 0.3   # fire / lava / magma / campfire
+    max-points: 3.0
+    heal-per-second: 0.01    # burns fade very slowly (a first aid kit clears them)
+  corrosion:
+    points: 1.5
+    damage-per-second: 0.5   # the acid keeps eating for ...
+    seconds: 12              # ... this long
+    heal-per-second: 0.02
+    causes: [DRAGON_BREATH]  # vanilla DamageCauses treated as corrosion
+    entity-tags: [scp106, scp_106, scp-106, "106"]  # attacker scoreboard tag / name containing one of these = corrosion
+  cut:                       # swords, axes, tridents, arrows
+    points-per-damage: 0.1
+    bleed-per-damage: 0.04
+    heal-per-second: 0.02
+  explosion:                 # vanilla explosions + Firearms frag grenades: shrapnel
+    points-per-damage: 0.12
+    bleed-per-damage: 0.03
+    heal-per-second: 0.01
+
+effects:
+  darkness-below: 0.35       # health fraction: tunnel vision
+  nausea-below: 0.2
+  heartbeat: true
+
+medical:
+  # items are RP Engine items (content/vitals/items/vitals.yml) when RP Engine runs; plain items otherwise.
+  bandage:
+    material: RABBIT_HIDE
+    name: "&fBandage"
+    seconds: 2.0
+    heal-hp: 2.0
+  first_aid_kit:
+    material: PHANTOM_MEMBRANE
+    name: "&cFirst Aid Kit"
+    seconds: 4.0
+    heal-hp: 6.0
+    points: 3.0              # injury points removed from EVERY wound
+    fixes-fractures: false   # false = a broken leg needs a splint
+  splint:
+    material: STICK
+    name: "&6Splint"
+    seconds: 3.0
+    heal-hp: 0.0
+  # right-clicking one of these (custom_model_data string) cures everything - SCP-500 from the Lab datapack
+  cure-all-model-strings: [scp500, lab_scp500, scp500_pill]
+
+rpengine:
+  install-content: true      # write plugins/RPEngine/content/vitals (pack.yml, items, icons, textures) when missing
+  reload-after-install: true # ask RP Engine to rebuild once after a fresh install (main thread, a few seconds)
